@@ -1,0 +1,191 @@
+import React, { useEffect, useMemo, useState } from "react";
+import "./lib/i18n";
+import { useTranslation } from "react-i18next";
+import { ThemeProvider } from "./components/ThemeProvider";
+import ThemeToggle from "./components/ThemeToggle";
+import LanguageModal from "./components/LanguageModal";
+import ResizableSplit from "./components/ResizableSplit";
+import Editor from "./components/Editor";
+import Output from "./components/Output";
+import Header from "./components/Header";
+import StatusBar from "./components/StatusBar";
+import OutputHeader from "./components/OutputHeader";
+import { Button } from "./components/ui/button";
+import ConfirmModal from "./components/ConfirmModal";
+import { getLanguageById, SUPPORTED_LANGUAGES } from "./lib/languages";
+import { Maximize2, Columns, RotateCcw, Settings } from "lucide-react";
+import EditorSettingsModal from "./components/EditorSettingsModal";
+import { executeCode } from "./services/api";
+
+export default function App() {
+  return (
+    <ThemeProvider>
+      <AppInner />
+    </ThemeProvider>
+  );
+}
+
+function AppInner() {
+  const { t, i18n } = useTranslation();
+  const [showPicker, setShowPicker] = useState(true);
+  const [langId, setLangId] = useState("javascript");
+  const [code, setCode] = useState(getLanguageById("javascript").template);
+  const [output, setOutput] = useState("");
+  const [error, setError] = useState("");
+  const [fullScreen, setFullScreen] = useState(false);
+  const [cursor, setCursor] = useState({ lineNumber: 1, column: 1 });
+  const [stats, setStats] = useState({ tabSize: 2, lines: 0, characters: 0 });
+  const [confirm, setConfirm] = useState({ open: false, message: "", onConfirm: null });
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [editorSettings, setEditorSettings] = useState({
+    lineNumbers: true,
+    minimap: false,
+    fontSize: 14, // medium
+    tabSize: 2,
+  });
+
+  useEffect(() => {
+    if (!showPicker) return;
+    // reset when opening picker
+  }, [showPicker]);
+
+  const current = useMemo(() => getLanguageById(langId), [langId]);
+
+  const runCode = async () => {
+    setError("");
+    setOutput("Running...");
+    try {
+      const body = {
+        language: current.piston.language,
+        version: current.piston.version,
+        files: [{ name: inferFilename(current.id), content: code }],
+      };
+      const data = await executeCode(body);
+      const out = [data.run?.stdout, data.run?.stderr].filter(Boolean).join("\n");
+      setOutput(out || "(no output)");
+    } catch (e) {
+      setError(String(e));
+    }
+  };
+
+  const onSelectLanguage = (id) => {
+    if (id === langId) return setShowPicker(false);
+    const next = getLanguageById(id);
+    setLangId(id);
+    setCode(next.template);
+  };
+
+  const onOpenLanguage = () => {
+    setConfirm({
+      open: true,
+      message: "Proceed to change the language? Your current code will reset.",
+      onConfirm: () => setShowPicker(true),
+    });
+  };
+
+  const toggleFull = () => setFullScreen((v) => !v);
+
+  const EditorPanel = (
+    <div className='flex h-full flex-col gap-2 mr-3'>
+      <div className='rounded-lg border bg-card'>
+        <div className='flex items-center justify-between px-3 py-2 text-sm text-muted-foreground'>
+          <span>
+            {t("editor")} — {current.name}
+          </span>
+          <div className='flex items-center gap-2'>
+            <Button variant='outline' size='icon' title={t("settings")} onClick={() => setSettingsOpen(true)}>
+              <Settings className='h-4 w-4 text-foreground' />
+            </Button>
+            <Button
+              variant='outline'
+              size='icon'
+              title={t("reset")}
+              onClick={() =>
+                setConfirm({
+                  open: true,
+                  message: t("confirmReset"),
+                  onConfirm: () => setCode(getLanguageById(current.id).template),
+                })
+              }>
+              <RotateCcw className='h-4 w-4 text-foreground' />
+            </Button>
+            <Button variant='outline' size='icon' title={fullScreen ? t("splitView") : t("fullscreen")} onClick={toggleFull}>
+              {fullScreen ? <Columns className='h-4 w-4 text-foreground' /> : <Maximize2 className='h-4 w-4 text-foreground' />}
+            </Button>
+          </div>
+        </div>
+      </div>
+      <div className='flex-1 min-h-0'>
+        <Editor language={current.monaco} code={code} onChange={setCode} fullScreen={fullScreen} onCursorChange={setCursor} onStats={setStats} settings={editorSettings} />
+      </div>
+      <StatusBar languageLabel={current.name} tabSize={stats.tabSize} lines={stats.lines} characters={stats.characters} cursor={cursor} ready={true} />
+    </div>
+  );
+
+  const OutputPanel = (
+    <div className='flex h-full flex-col gap-2 pl-2'>
+      <OutputHeader
+        languageName={current.name}
+        onRun={runCode}
+        onClear={() => {
+          setOutput("");
+          setError("");
+        }}
+        ready={true}
+      />
+      <div className='flex-1 min-h-0'>
+        <Output
+          output={output}
+          error={error}
+          languageLabel={current.name.toLowerCase()}
+          placeholderIcon={
+            <svg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.5' strokeLinecap='round' strokeLinejoin='round' className='h-24 w-24 text-muted-foreground'>
+              <polygon points='5 3 19 12 5 21 5 3'></polygon>
+            </svg>
+          }
+        />
+      </div>
+    </div>
+  );
+
+  return (
+    <div className='h-screen w-screen'>
+      {!fullScreen && <Header title={t("appTitle")} i18n={i18n} t={t} languageName={current.name} onOpenLanguage={onOpenLanguage} />}
+
+      <div className={fullScreen ? "px-0" : "px-4"}>
+        {fullScreen ? (
+          <div className='h-screen'>{EditorPanel}</div>
+        ) : (
+          <div className='h-[calc(100vh-96px)]'>
+            <ResizableSplit left={EditorPanel} right={OutputPanel} />
+          </div>
+        )}
+
+        <LanguageModal open={showPicker} onOpenChange={setShowPicker} onSelect={onSelectLanguage} />
+        <ConfirmModal open={confirm.open} onOpenChange={(v) => setConfirm((c) => ({ ...c, open: v }))} title={t("confirmTitle")} message={confirm.message} onConfirm={confirm.onConfirm} />
+        <EditorSettingsModal open={settingsOpen} onOpenChange={setSettingsOpen} value={editorSettings} onChange={setEditorSettings} />
+      </div>
+    </div>
+  );
+}
+
+function inferFilename(id) {
+  switch (id) {
+    case "javascript":
+      return "main.js";
+    case "typescript":
+      return "main.ts";
+    case "python":
+      return "main.py";
+    case "java":
+      return "Main.java";
+    case "c":
+      return "main.c";
+    case "cpp":
+      return "main.cpp";
+    case "go":
+      return "main.go";
+    default:
+      return "main.txt";
+  }
+}

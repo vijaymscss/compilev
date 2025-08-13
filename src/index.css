@@ -1,0 +1,107 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 0 0% 100%;
+  --foreground: 222.2 84% 4.9%;
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 84% 4.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 84% 4.9%;
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --primary: 222.2 47.4% 11.2%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 210 40% 96.1%;
+  --secondary-foreground: 222.2 47.4% 11.2%;
+  --accent: 210 40% 96.1%;
+  --accent-foreground: 222.2 47.4% 11.2%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+  --ring: 215 20.2% 65.1%;
+  --radius: 0.5rem;
+}
+
+.dark {
+  /* Deep navy background similar to the screenshot */
+  --background: 222 47% 7%; /* ~#0b1220 */
+  --foreground: 210 25% 96%;
+
+  /* Muted surfaces and subtle foreground */
+  --muted: 220 25% 14%;
+  --muted-foreground: 215 16% 70%;
+
+  /* Popover/card match base but slightly lifted */
+  --popover: 222 47% 7%;
+  --popover-foreground: 210 25% 96%;
+  --card: 222 42% 9%;
+  --card-foreground: 210 25% 96%;
+
+  /* Borders and inputs */
+  --border: 215 27% 16%;
+  --input: 215 27% 16%;
+
+  /* Primary accent (green run button) */
+  --primary: 142 70% 45%; /* emerald-green */
+  --primary-foreground: 210 40% 98%;
+
+  /* Secondary/accent blues for hovers and panels */
+  --secondary: 217 19% 24%;
+  --secondary-foreground: 210 25% 96%;
+  --accent: 217 19% 24%;
+  --accent-foreground: 210 25% 96%;
+
+  --destructive: 0 75% 40%;
+  --destructive-foreground: 210 40% 98%;
+  --ring: 215 27% 16%;
+}
+
+/* Scoped dark theme for components that should always appear dark regardless of global theme */
+.theme-dark {
+  /* Deep navy background similar to the screenshot */
+  --background: 222 47% 7%; /* ~#0b1220 */
+  --foreground: 210 25% 96%;
+
+  /* Muted surfaces and subtle foreground */
+  --muted: 220 25% 14%;
+  --muted-foreground: 215 16% 70%;
+
+  /* Popover/card match base but slightly lifted */
+  --popover: 222 47% 7%;
+  --popover-foreground: 210 25% 96%;
+  --card: 222 42% 9%;
+  --card-foreground: 210 25% 96%;
+
+  /* Borders and inputs */
+  --border: 215 27% 16%;
+  --input: 215 27% 16%;
+
+  /* Primary accent (green run button) */
+  --primary: 142 70% 45%; /* emerald-green */
+  --primary-foreground: 210 40% 98%;
+
+  /* Secondary/accent blues for hovers and panels */
+  --secondary: 217 19% 24%;
+  --secondary-foreground: 210 25% 96%;
+  --accent: 217 19% 24%;
+  --accent-foreground: 210 25% 96%;
+
+  --destructive: 0 75% 40%;
+  --destructive-foreground: 210 40% 98%;
+  --ring: 215 27% 16%;
+}
+
+* {
+  @apply border-border;
+}
+
+body {
+  @apply bg-background text-foreground;
+}
+
+/* Remove Vite template defaults that override theme variables */
+
+/* Remove default Vite template element styles that conflict with Tailwind/shadcn buttons and links */
