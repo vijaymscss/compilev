@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 
-export const ThemeContext = React.createContext({ theme: "system", setTheme: () => {} });
+export const ThemeContext = React.createContext({ theme: "dark", setTheme: () => {} });
 
 export function ThemeProvider({ children }) {
-  const [theme, setTheme] = useState(() => localStorage.getItem("theme") || "system");
+  const [theme, setTheme] = useState(() => localStorage.getItem("theme") || "dark");
 
   useEffect(() => {
     const root = window.document.documentElement;

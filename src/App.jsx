@@ -16,6 +16,8 @@ import { getLanguageById, SUPPORTED_LANGUAGES } from "./lib/languages";
 import { Maximize2, Columns, RotateCcw, Settings } from "lucide-react";
 import EditorSettingsModal from "./components/EditorSettingsModal";
 import { executeCode } from "./services/api";
+import EditorPanel from "./components/EditorPanel";
+import OutputPanel from "./components/OutputPanel";
 
 export default function App() {
   return (
@@ -43,6 +45,7 @@ function AppInner() {
     fontSize: 14, // medium
     tabSize: 2,
   });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (!showPicker) return;
@@ -54,6 +57,7 @@ function AppInner() {
   const runCode = async () => {
     setError("");
     setOutput("Running...");
+    setLoading(true);
     try {
       const body = {
         language: current.piston.language,
@@ -65,6 +69,8 @@ function AppInner() {
       setOutput(out || "(no output)");
     } catch (e) {
       setError(String(e));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -85,82 +91,19 @@ function AppInner() {
 
   const toggleFull = () => setFullScreen((v) => !v);
 
-  const EditorPanel = (
-    <div className='flex h-full flex-col gap-2 mr-3'>
-      <div className='rounded-lg border bg-card'>
-        <div className='flex items-center justify-between px-3 py-2 text-sm text-muted-foreground'>
-          <span>
-            {t("editor")} — {current.name}
-          </span>
-          <div className='flex items-center gap-2'>
-            <Button variant='outline' size='icon' title={t("settings")} onClick={() => setSettingsOpen(true)}>
-              <Settings className='h-4 w-4 text-foreground' />
-            </Button>
-            <Button
-              variant='outline'
-              size='icon'
-              title={t("reset")}
-              onClick={() =>
-                setConfirm({
-                  open: true,
-                  message: t("confirmReset"),
-                  onConfirm: () => setCode(getLanguageById(current.id).template),
-                })
-              }>
-              <RotateCcw className='h-4 w-4 text-foreground' />
-            </Button>
-            <Button variant='outline' size='icon' title={fullScreen ? t("splitView") : t("fullscreen")} onClick={toggleFull}>
-              {fullScreen ? <Columns className='h-4 w-4 text-foreground' /> : <Maximize2 className='h-4 w-4 text-foreground' />}
-            </Button>
-          </div>
-        </div>
-      </div>
-      <div className='flex-1 min-h-0'>
-        <Editor language={current.monaco} code={code} onChange={setCode} fullScreen={fullScreen} onCursorChange={setCursor} onStats={setStats} settings={editorSettings} />
-      </div>
-      <StatusBar languageLabel={current.name} tabSize={stats.tabSize} lines={stats.lines} characters={stats.characters} cursor={cursor} ready={true} />
-    </div>
-  );
-
-  const OutputPanel = (
-    <div className='flex h-full flex-col gap-2 pl-2'>
-      <OutputHeader
-        languageName={current.name}
-        onRun={runCode}
-        onClear={() => {
-          setOutput("");
-          setError("");
-        }}
-        ready={true}
-      />
-      <div className='flex-1 min-h-0'>
-        <Output
-          output={output}
-          error={error}
-          languageLabel={current.name.toLowerCase()}
-          placeholderIcon={
-            <svg xmlns='http://www.w3.org/2000/svg' width='96' height='96' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='1.5' strokeLinecap='round' strokeLinejoin='round' className='h-24 w-24 text-muted-foreground'>
-              <polygon points='5 3 19 12 5 21 5 3'></polygon>
-            </svg>
-          }
-        />
-      </div>
-    </div>
-  );
-
   return (
     <div className='h-screen w-screen'>
       {!fullScreen && <Header title={t("appTitle")} i18n={i18n} t={t} languageName={current.name} onOpenLanguage={onOpenLanguage} />}
-
       <div className={fullScreen ? "px-0" : "px-4"}>
         {fullScreen ? (
-          <div className='h-screen'>{EditorPanel}</div>
+          <div className='h-screen'>
+            <EditorPanel t={t} current={current} setSettingsOpen={setSettingsOpen} setConfirm={setConfirm} setCode={setCode} fullScreen={fullScreen} toggleFull={toggleFull} code={code} onChange={setCode} onCursorChange={setCursor} onStats={setStats} stats={stats} cursor={cursor} editorSettings={editorSettings} />
+          </div>
         ) : (
           <div className='h-[calc(100vh-96px)]'>
-            <ResizableSplit left={EditorPanel} right={OutputPanel} />
+            <ResizableSplit left={<EditorPanel t={t} current={current} setSettingsOpen={setSettingsOpen} setConfirm={setConfirm} setCode={setCode} fullScreen={fullScreen} toggleFull={toggleFull} code={code} onChange={setCode} onCursorChange={setCursor} onStats={setStats} stats={stats} cursor={cursor} editorSettings={editorSettings} />} right={<OutputPanel current={current} runCode={runCode} output={output} error={error} setOutput={setOutput} setError={setError} ready={!loading} code={code} />} />
           </div>
         )}
-
         <LanguageModal open={showPicker} onOpenChange={setShowPicker} onSelect={onSelectLanguage} />
         <ConfirmModal open={confirm.open} onOpenChange={(v) => setConfirm((c) => ({ ...c, open: v }))} title={t("confirmTitle")} message={confirm.message} onConfirm={confirm.onConfirm} />
         <EditorSettingsModal open={settingsOpen} onOpenChange={setSettingsOpen} value={editorSettings} onChange={setEditorSettings} />

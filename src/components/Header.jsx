@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Button } from "./ui/button";
 import ThemeToggle from "./ThemeToggle";
-import { Code, Info } from "lucide-react";
+import { Code, CodeXml, Info } from "lucide-react";
 import AboutModal from "./AboutModal";
 
 export default function Header({ title, i18n, t, languageName, onOpenLanguage }) {
@@ -9,7 +9,10 @@ export default function Header({ title, i18n, t, languageName, onOpenLanguage })
   return (
     <>
       <div className='theme-dark mb-2 flex items-center justify-between p-4  border bg-background text-foreground'>
-        <div className='text-lg font-semibold'>{title}</div>
+        <div className='text-lg font-semibold flex gap-2'>
+          {" "}
+          <CodeXml /> {title}
+        </div>
         <div className='flex items-center gap-2'>
           <Button variant='outline' onClick={onOpenLanguage}>
             <span className='flex gap-2 items-center text-foreground px-4 py-1.5'>
