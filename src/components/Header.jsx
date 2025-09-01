@@ -9,7 +9,7 @@ export default function Header({ title, i18n, t, languageName, onOpenLanguage })
   return (
     <>
       <div className='theme-dark mb-2 flex items-center justify-between p-4  border bg-background text-foreground'>
-        <div className='text-lg font-semibold flex gap-2'>
+        <div className='flex items-center gap-2 text-lg font-semibold '>
           {" "}
           <CodeXml /> {title}
         </div>
