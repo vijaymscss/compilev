@@ -104,7 +104,7 @@ export default function OutputPanel({ current, runCode, output, error, setOutput
             }
           />
         ) : (
-          <div className='h-full overflow-auto scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-muted-foreground dark:scrollbar-thumb-[#374151] dark:scrollbar-track-[#111827]'>
+          <div className='h-full overflow-auto custom-scrollbar'>
             <div className='mt-2 p-3'>
               {/* Review from AI button only in AI Feedback tab */}
               <div className='mb-4 '>
